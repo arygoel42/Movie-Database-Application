@@ -141,7 +141,7 @@ router.get("/", async (req, res) => {
           genreObject[Math.floor(Math.random() * genreObject.length)];
         let randomPage = pages[Math.floor(Math.random() * pages.length)];
         let response = await axios.get(
-          `https://api.themoviedb.org/3/discover/movie?api_key=1aee5a741c71ae1f9453399c72f5381f&with_genres=${randomGenre._id}&page=${randomPage}`
+          `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.MOVIE_KEY}&with_genres=${randomGenre._id}&page=${randomPage}`
         );
         if (
           response.data &&
@@ -229,7 +229,7 @@ router.get("/popular", async (req, res) => {
 
   try {
     let response = await axios.get(
-      "https://api.themoviedb.org/3/movie/popular?api_key=1aee5a741c71ae1f9453399c72f5381f&language=en-US&page=1"
+      `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.MOVIE_KEY}&language=en-US&page=1`
     );
 
     if (
@@ -337,7 +337,7 @@ router.get("/toprated", async (req, res) => {
 
   try {
     let response = await axios.get(
-      "https://api.themoviedb.org/3/movie/top_rated?api_key=1aee5a741c71ae1f9453399c72f5381f&language=en-US&page=1"
+      `https://api.themoviedb.org/3/movie/top_rated?api_key=${process.env.MOVIE_KEY}&language=en-US&page=1`
     );
 
     if (

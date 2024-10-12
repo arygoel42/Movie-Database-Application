@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import useMovie from "../hooks/movieFetch";
 import useStore from "../Store/store.ts";
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const SearchPage = () => {
   const { searchTerm, setSearchTerm } = useStore();
@@ -65,54 +66,58 @@ const SearchPage = () => {
             spacing={6} // Space between movie cards
             justifyItems="center"
           >
-            {movies?.map((movie, index) => (
-              <Box
-                key={index}
-                minW="200px"
-                maxW="250px"
-                borderWidth="1px"
-                borderRadius="lg"
-                overflow="hidden"
-                boxShadow="lg"
-                bgImage={`url(${movie?.imageURL})`}
-                bgSize="cover"
-                bgPosition="center"
-                position="relative"
-                height="350px"
-                cursor="pointer"
-                _hover={{
-                  transform: "scale(1.05)",
-                  transition: "transform 0.3s ease",
-                }}
-                onClick={() => navigate(`/${movie.title}/${movie._id}`)}
-              >
-                {/* Movie Title & Genre Overlay */}
+            {movies?.length === 0 ? (
+              <Text color="white">No results found</Text>
+            ) : (
+              movies?.map((movie, index) => (
                 <Box
-                  position="absolute"
-                  bottom="0"
-                  width="100%"
-                  bg="rgba(0, 0, 0, 0.6)" // Dark overlay
-                  color="white"
-                  textAlign="center"
-                  p={4}
+                  key={index}
+                  minW="200px"
+                  maxW="250px"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  boxShadow="lg"
+                  bgImage={`url(${movie?.imageURL})`}
+                  bgSize="cover"
+                  bgPosition="center"
+                  position="relative"
+                  height="350px"
+                  cursor="pointer"
+                  _hover={{
+                    transform: "scale(1.05)",
+                    transition: "transform 0.3s ease",
+                  }}
+                  onClick={() => navigate(`/${movie.title}/${movie._id}`)}
                 >
-                  <Text
-                    fontWeight="bold"
-                    fontSize="lg"
-                    textShadow="2px 2px 4px rgba(0, 0, 0, 0.8)"
+                  {/* Movie Title & Genre Overlay */}
+                  <Box
+                    position="absolute"
+                    bottom="0"
+                    width="100%"
+                    bg="rgba(0, 0, 0, 0.6)" // Dark overlay
+                    color="white"
+                    textAlign="center"
+                    p={4}
                   >
-                    {movie.title}
-                  </Text>
-                  <Text
-                    fontSize="sm"
-                    color="gray.300"
-                    textShadow="1px 1px 3px rgba(0, 0, 0, 0.8)"
-                  >
-                    {movie.genre.name}
-                  </Text>
+                    <Text
+                      fontWeight="bold"
+                      fontSize="lg"
+                      textShadow="2px 2px 4px rgba(0, 0, 0, 0.8)"
+                    >
+                      {movie.title}
+                    </Text>
+                    <Text
+                      fontSize="sm"
+                      color="gray.300"
+                      textShadow="1px 1px 3px rgba(0, 0, 0, 0.8)"
+                    >
+                      {movie.genre.name}
+                    </Text>
+                  </Box>
                 </Box>
-              </Box>
-            ))}
+              ))
+            )}
           </SimpleGrid>
         </GridItem>
       </Grid>

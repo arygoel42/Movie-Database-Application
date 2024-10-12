@@ -1,9 +1,11 @@
 import React from "react";
-import { Text, Box, Flex, Image, Stack } from "@chakra-ui/react";
+import { Text, Box, Flex, Image, Stack, IconButton } from "@chakra-ui/react";
 import useMovie from "../hooks/movieFetch";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import MovieRender from "./MovieRender";
+import useAuthFetch from "../hooks/authFetch";
+import { AddIcon } from "@chakra-ui/icons"; // Import the AddIcon
 
 export interface movieObject {
   numberInStock: number;
@@ -25,6 +27,8 @@ const DisplayMovies = () => {
   const layoutObject = ["toprated", "Action", "Suspense", "Horror"];
 
   const { data, error } = useMovie("popular");
+
+  const { loggedIn, logout, userObject } = useAuthFetch();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -121,6 +125,20 @@ const DisplayMovies = () => {
                     {movie?.genre.name}
                   </Text>
                 </Box>
+                {loggedIn && (
+                  <IconButton
+                    aria-label="Add to favorites"
+                    icon={<AddIcon />}
+                    size="sm"
+                    colorScheme="teal"
+                    position="absolute"
+                    top="10px"
+                    right="10px"
+                    onClick={() => {
+                      console.log("Added to favorites:", movie.title);
+                    }}
+                  />
+                )}
               </Box>
             ))}
         </Flex>

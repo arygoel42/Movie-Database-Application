@@ -20,9 +20,9 @@ router.post("/", async (req, res) => {
   if (!validUser) return res.status(400).json("invalid email or password");
 
   const token = authUser.generateAuthToken();
-  console.log("Private Key:", process.env.PRIVATE_KEY);
 
   res.header("x-auth-token", token).json(token);
+  console.log(token);
 
   //authentication parameters
 

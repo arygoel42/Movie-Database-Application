@@ -17,12 +17,66 @@ import { MdManageSearch } from "react-icons/md";
 import { IoExitOutline } from "react-icons/io5";
 import SearchBar from "./SearchBar";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { credential } from "firebase-admin";
+import axios from "axios";
+import useAuthFetch from "../hooks/authFetch.ts";
 
 const Navbar = () => {
+  const { userObject, loggedIn, logout } = useAuthFetch();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isSearchOpen, setSearchOpen] = useState(false);
   const { searchBoolean, setSearchBoolean } = useStore();
   const navigate = useNavigate();
+  const [user, setUser] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("x-auth-token");
+      setUser("");
+
+      if (token) {
+        let response = await fetch("http://localhost:3009/api/user/profile", {
+          method: "POST",
+          headers: {
+            "x-auth-token": token,
+          },
+        });
+
+        if (!response.ok) {
+          // Handle the error response
+          const errorData = await response.json();
+          console.error("Error:", errorData.message);
+        }
+
+        if (response.ok) {
+          let data = await response.json();
+          setUser(data.name);
+        } else {
+          console.log("token not valid");
+        }
+      } else {
+        let response = await fetch("http://localhost:3009/api/user/profile", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          let data = await response.json();
+          setUser(data.name);
+        }
+      }
+    };
+    fetchData();
+  }, [navigate]);
+
+  const HandleNavigate = () => {
+    if (user === "") {
+      navigate("/login");
+    } else {
+      navigate("/profile"); // change later
+    }
+  };
 
   return (
     <Box
@@ -92,13 +146,13 @@ const Navbar = () => {
             {/* Call to Action Button */}
             <Button
               as="a"
-              onClick={() => navigate("/login")}
+              onClick={() => HandleNavigate()}
               colorScheme="teal"
               variant="solid"
               size="sm"
               display={{ base: "none", md: "flex" }}
             >
-              Login
+              {user != "" ? user : "Login"}
             </Button>
           </HStack>
         </Flex>

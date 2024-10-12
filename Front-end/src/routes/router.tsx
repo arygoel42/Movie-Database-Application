@@ -7,6 +7,7 @@ import App from "/src/App.jsx";
 import SearchPage from "../components/SearchPage";
 import LoginPage from "../components/LoginPage";
 import SignUp from "../components/SignUp";
+import Profile from "../components/Profile";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
   { path: "/search/:term", element: <SearchPage /> },
   { path: "/Login", element: <LoginPage /> },
   { path: "/signup", element: <SignUp /> },
+  { path: "/profile", element: <Profile /> },
 ]);
 
 export default router;

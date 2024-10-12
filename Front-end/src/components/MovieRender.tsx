@@ -1,15 +1,18 @@
 import React from "react";
 import useMovie from "../hooks/movieFetch";
-import { Text, Box, Flex, Image, Stack } from "@chakra-ui/react";
+import { Text, Box, Flex, IconButton, Image, Stack } from "@chakra-ui/react";
 import { useRef } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AddIcon } from "@chakra-ui/icons"; // Import the AddIcon
+import useAuthFetch from "../hooks/authFetch";
 
 interface Props {
   category: string;
 }
 
 const MovieRender = ({ category }: Props) => {
+  const { loggedIn, logout, userObject } = useAuthFetch();
+
   const genreObject = [
     { name: "Action", _id: "28" },
     { name: "Adventure", _id: "12" },
@@ -42,6 +45,7 @@ const MovieRender = ({ category }: Props) => {
     { name: "Dystopian", _id: "878" },
     { name: "Martial Arts", _id: "28" },
   ];
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -55,35 +59,31 @@ const MovieRender = ({ category }: Props) => {
     }
   };
 
-  // Initialize data, error, and isLoading by default
-  let data, error, isLoading, typeMovie;
+  let data, error, isLoading;
 
-  // Check if the category is either "toprated" or "popular"
+  // Determine the type of category
   console.log(category);
   if (category === "toprated" || category === "popular") {
-    ({ data, error, isLoading } = useMovie(category)); // Destructure data
+    ({ data, error, isLoading } = useMovie(category));
   }
 
-  // Check if the category exists in the genreObject
   const exists = genreObject.some((obj) => obj.name === category);
   if (exists) {
-    ({ data, error, isLoading } = useMovie(undefined, undefined, category)); // Destructure data
+    ({ data, error, isLoading } = useMovie(undefined, undefined, category));
   }
 
-  // Check if data is available before filtering
   const filteredData = Array.isArray(data)
     ? data?.filter((movie) => movie?.imageURL !== "N/A" && movie?.title)
     : [];
 
-  // If data is undefined or null, you can handle the error case here
   if (!filteredData.length) {
     return <Text>No movies found.</Text>;
   }
 
   return (
     <Box
-      overflow="hidden" // Hide the overflow of the movie list
-      width="90vw" // Full width of viewport
+      overflow="hidden"
+      width="90vw"
       position="relative"
       backgroundColor="gray.900"
     >
@@ -94,16 +94,16 @@ const MovieRender = ({ category }: Props) => {
         p={4}
         sx={{
           "::-webkit-scrollbar": {
-            display: "none", // Hide scrollbar on webkit browsers
+            display: "none",
           },
-          msOverflowStyle: "none", // Hide scrollbar on IE/Edge
-          scrollbarWidth: "none", // Hide scrollbar on Firefox
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
         }}
       >
         {filteredData.map((movie, index) => (
           <Box
             key={index}
-            minW="200px" // Ensure each item has a minimum width
+            minW="200px"
             maxW="250px"
             borderWidth="1px"
             borderRadius="lg"
@@ -127,7 +127,7 @@ const MovieRender = ({ category }: Props) => {
               position="absolute"
               bottom="0"
               width="100%"
-              bg="rgba(0, 0, 0, 0.6)" // Dark overlay
+              bg="rgba(0, 0, 0, 0.6)"
               color="white"
               textAlign="center"
               p={4}
@@ -147,6 +147,22 @@ const MovieRender = ({ category }: Props) => {
                 {movie.genre.name}
               </Text>
             </Box>
+
+            {/* Add "+" button at the top right corner when loggedIn is true */}
+            {loggedIn && (
+              <IconButton
+                aria-label="Add to favorites"
+                icon={<AddIcon />}
+                size="sm"
+                colorScheme="teal"
+                position="absolute"
+                top="10px"
+                right="10px"
+                onClick={() => {
+                  console.log("Added to favorites:", movie.title);
+                }}
+              />
+            )}
           </Box>
         ))}
       </Flex>

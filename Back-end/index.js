@@ -16,6 +16,44 @@ const winston = require("winston");
 require("winston-mongodb");
 require("dotenv").config();
 const apiScraper = require("./DataScraper/apiScraper");
+require("./middlewear/Passport");
+const passport = require("passport");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const path = require("path");
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+const corsOptions = {
+  origin: "http://localhost:5173", // Change to your frontend URL
+  credentials: true, // Allow credentials
+  exposedHeaders: ["x-auth-token"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+};
+
+app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173"); // Your frontend origin
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, x-auth-token"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
+app.use(
+  session({
+    secret: process.env.PRIVATE_KEY,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: "mongodb://localhost/vidly" }),
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 winston.add(new winston.transports.File({ filename: "logfile.log" }));
 winston.add(
@@ -25,14 +63,12 @@ winston.add(
     level: "error", // Log only errors (you can change to 'info', 'warn', etc.)
   })
 );
-app.use(cors());
 
 mongoose
   .connect("mongodb://localhost/vidly")
   .then(() => console.log("Connected to MongoDB..."))
   .catch((err) => console.error("Could not connect to MongoDB..."));
 
-app.use(express.json());
 app.use("/api/genres", genres);
 app.use("/api/customers", customers);
 app.use("/api/movies", movies);

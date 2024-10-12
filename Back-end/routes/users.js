@@ -6,10 +6,50 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const routeAuth = require("../middlewear/auth");
+const session = require("express-session");
+require("../middlewear/Passport");
+const passport = require("passport");
+const authLog = require("../middlewear/authLog");
 
-router.get("/me", routeAuth, async (req, res) => {
-  let User = await findById(req.user._id).select("-password");
-  res.send(User);
+router.get("/google/auth", (req, res) => {
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res);
+});
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  async (req, res) => {
+    try {
+      res.redirect("http://localhost:5173/");
+    } catch (error) {
+      console.error("Callback error:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+router.post("/profile", authLog, async (req, res) => {
+  try {
+    // Make sure to await the query
+    const findUser = await user.findOne({ GoogleID: req.user.GoogleID });
+
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Respond with the user object
+    res.json(findUser);
+  } catch (error) {
+    // Catch any errors and send a 500 response
+    console.error("Error finding user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/logout", authLog, async (req, res) => {
+  req.logOut((err) => {
+    res.status(500).send("error signing out");
+  });
 });
 
 router.post("/", async (req, res) => {

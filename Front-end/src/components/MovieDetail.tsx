@@ -137,7 +137,7 @@ const MovieDetailPage = () => {
                   px="8" // Padding to make the button look larger
                   py="6"
                 >
-                  Add to watchList
+                  Add to watchList+
                 </Button>
               </VStack>
             </Flex>

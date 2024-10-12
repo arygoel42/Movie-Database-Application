@@ -9,10 +9,16 @@ import {
   Box,
   VStack,
   Input,
+  Alert,
+  AlertTitle,
+  AlertIcon,
+  CloseButton,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import axios from "axios";
-import { set } from "joi/lib/types/lazy";
+import { useNavigate } from "react-router-dom";
+import useStore from "../Store/store.ts";
 
 const SignUp = () => {
   const validateEmail = (email) => {
@@ -20,20 +26,22 @@ const SignUp = () => {
     return emailRegex.test(email);
   };
 
+  const navigate = useNavigate();
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
-  const [nameError, setNameError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const { setAccountSuccess } = useStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
     const enteredName = e.target[0].value;
-    const enteredUsername = e.target[1].value; // Username from the form input
+    const enteredUsername = e.target[1].value;
     const enteredPassword = e.target[2].value;
 
-    console.log("Login button clicked");
     setUsername(enteredUsername);
     setPassword(enteredPassword);
     setName(enteredName);
@@ -42,7 +50,7 @@ const SignUp = () => {
     setPasswordError(false);
 
     if (
-      enteredUsername.length > 20 ||
+      enteredUsername.length > 50 ||
       enteredUsername.length < 5 ||
       !validateEmail(enteredUsername)
     ) {
@@ -51,21 +59,54 @@ const SignUp = () => {
     if (enteredPassword.length > 20 || enteredPassword.length < 5) {
       setPasswordError(true);
     }
+
+    if (usernameError || passwordError) {
+      return;
+    }
+
+    try {
+      let response = await axios.post("http://localhost:3009/api/user", {
+        name: name,
+        email: username,
+        password: password,
+      });
+
+      if (response.status === 200) {
+        navigate("/login");
+        setAccountSuccess(true);
+      }
+    } catch (error) {
+      if (error.response.status === 400 || error.response.status === 500) {
+        setErrorMessage(error.response.data);
+      }
+    }
   };
 
-  if (!usernameError && !passwordError) {
-    //enter post request to backend
-    let response = axios.post("http://localhost:3009/api/login", {});
-  }
+  const googleSign = async () => {
+    window.open("http://localhost:3009/api/user/google/auth", "_self");
+  };
 
   return (
     <div>
+      {errorMessage !== "" && (
+        <Alert status="error" variant="subtle">
+          <AlertIcon />
+          <AlertTitle>{errorMessage}</AlertTitle>
+          <CloseButton
+            position="absolute"
+            right="8px"
+            top="8px"
+            onClick={() => setErrorMessage("")}
+          />
+        </Alert>
+      )}
+
       <Grid
-        templateRows="80px 1fr" // Navbar and content layout
+        templateRows="80px 1fr"
         templateColumns="1fr"
-        minHeight="100vh" // Full height for the page
-        width="100vw" // Full width for the page
-        bgGradient="linear(to-r, teal.500, blue.500)"
+        minHeight="100vh"
+        width="100vw"
+        bgGradient="linear(to-r, teal.600, blue.600)"
       >
         {/* Navbar */}
         <GridItem>
@@ -75,92 +116,102 @@ const SignUp = () => {
         {/* Main content */}
         <GridItem display="flex" justifyContent="center" alignItems="center">
           <Box
-            bg="rgba(0, 0, 0, 0.7)" // Semi-transparent background
-            borderRadius="md"
-            p={8}
+            bg="white"
+            borderRadius="lg"
+            p={10}
             maxW="500px"
+            boxShadow="lg"
+            transition="0.3s ease-in-out"
+            _hover={{ boxShadow: "2xl", transform: "translateY(-5px)" }}
             textAlign="center"
-            boxShadow="xl"
           >
             <VStack spacing={6}>
               {/* Welcome Message */}
               <Text
-                fontSize="2xl"
+                fontSize="3xl"
                 fontWeight="bold"
-                color="white"
-                lineHeight="shorter"
-                letterSpacing="wide"
+                color="teal.700"
+                letterSpacing="wider"
               >
-                Welcome to the Movie Database
+                Welcome to Movie Database
               </Text>
 
               {/* Subtext */}
-              <Text fontSize="lg" color="gray.300">
-                Create a account to get started
+              <Text fontSize="lg" color="gray.600">
+                Create an account to get started
               </Text>
+
+              <Button
+                onClick={googleSign}
+                width="100%"
+                bgGradient="linear(to-r, red.500, yellow.500)"
+                color="white"
+                _hover={{ bgGradient: "linear(to-r, red.400, yellow.400)" }}
+              >
+                Sign up with Google
+              </Button>
+
               <form onSubmit={(e) => handleSubmit(e)}>
                 <Input
                   type="text"
                   placeholder="Name"
                   borderRadius="full"
-                  background={"white"}
-                  mb={2} // Reduced margin-bottom for spacing between input fields
-                  min={5}
-                  max={20}
+                  background="gray.100"
+                  mb={3}
+                  p={5}
                   required
-                  isInvalid={false}
                 />
-
                 <Input
-                  type="text"
-                  placeholder="Username"
+                  type="email"
+                  placeholder="Email"
                   borderRadius="full"
-                  background={"white"}
-                  mb={2} // Reduced margin-bottom for spacing between input fields
-                  min={5}
-                  max={20}
+                  background="gray.100"
+                  mb={3}
+                  p={5}
                   required
                   isInvalid={usernameError}
                 />
                 {usernameError && (
-                  <Text color="red.500" mt={0}>
-                    {" "}
-                    {/* Removed margin */}
-                    Please enter a valid username between 5 and 20 characters
+                  <Text color="red.500" fontSize="sm">
+                    Please enter a valid email.
                   </Text>
                 )}
 
                 <Input
-                  type="text"
+                  type="password"
                   placeholder="Password"
                   borderRadius="full"
-                  background={"white"}
-                  mb={2} // Reduced margin-bottom for spacing between input fields
-                  min={5}
-                  max={20}
+                  background="gray.100"
+                  mb={3}
+                  p={5}
                   required
                   isInvalid={passwordError}
                 />
                 {passwordError && (
-                  <Text color="red.500" mt={0}>
-                    {" "}
-                    {/* Removed margin */}
-                    Please enter a valid password between 5 and 20 characters
+                  <Text color="red.500" fontSize="sm">
+                    Please enter a valid password.
                   </Text>
                 )}
 
-                {/* Login Button */}
                 <Button
                   type="submit"
                   size="lg"
                   colorScheme="teal"
                   borderRadius="full"
-                  _hover={{ bg: "teal.400", transform: "scale(1.05)" }} // Modern hover effect
+                  width="100%"
+                  _hover={{ bg: "teal.400", transform: "scale(1.05)" }}
                   px={10}
                   py={6}
+                  mt={4}
                 >
                   Sign up
                 </Button>
+
+                <Link to="/login">
+                  <Text fontSize="sm" color="gray.500" mt={4}>
+                    Already have an account? Log in here.
+                  </Text>
+                </Link>
               </form>
             </VStack>
           </Box>

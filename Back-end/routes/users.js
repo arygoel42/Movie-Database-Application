@@ -31,11 +31,16 @@ router.get(
 router.post("/profile", authLog, async (req, res) => {
   try {
     // Make sure to await the query
-    const findUser = await user.findOne({ GoogleID: req.user.GoogleID });
+    const findUser = await user.findOne({ _id: req.user._id });
+    console.log(req.user);
 
     if (!findUser) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    const isTrue = findUser ? true : false;
+    console.log(isTrue);
+    console.log(findUser);
 
     // Respond with the user object
     res.json(findUser);
@@ -48,7 +53,22 @@ router.post("/profile", authLog, async (req, res) => {
 
 router.post("/logout", authLog, async (req, res) => {
   req.logOut((err) => {
-    res.status(500).send("error signing out");
+    if (err) {
+      return res.status(500).send("Error signing out");
+    }
+
+    // Destroy the session (if using session management)
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).send("Error destroying session");
+      }
+
+      // Clear the session cookie (replace 'cookieName' with your session cookie name)
+      res.clearCookie("connect.sid"); // or the name of the cookie you're using
+
+      // Send a success response after session is cleared
+      res.status(200).send("Successfully logged out");
+    });
   });
 });
 

@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  watchList: [{ type: mongoose.Schema.Types.ObjectId, ref: "Movie" }],
 });
 
 userSchema.methods.generateAuthToken = function () {

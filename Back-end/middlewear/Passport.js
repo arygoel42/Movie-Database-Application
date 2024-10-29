@@ -10,10 +10,21 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "http://localhost:3009/api/user/google/callback",
+      accessType: "offline", // Ensures refresh token is returned
+      prompt: "consent", // Force consent screen
+      scope: [
+        "profile", // Basic profile information
+        "email", // User email
+        "https://www.googleapis.com/auth/gmail.readonly", // Gmail read-only access
+      ],
     },
     async (accessToken, refreshToken, profile, done) => {
-      //   console.log("Google Profile:", profile);
+      // Check if refreshToken is returned
+      console.log("Access Token:", accessToken);
+      console.log("Refresh Token:", refreshToken); // This is where we check if it's returned
+
       let checkUser = await user.findOne({ email: profile.emails[0].value });
+
       if (checkUser) {
         done(null, checkUser);
       } else {

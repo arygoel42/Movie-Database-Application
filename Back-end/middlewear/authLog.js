@@ -7,6 +7,7 @@ function authLog(req, res, next) {
   const token = req.header("x-auth-token");
   console.log("helloWorld");
   //   console.log(token + " token");
+  console.log("token:", token);
 
   if (req.isAuthenticated()) {
     return next();

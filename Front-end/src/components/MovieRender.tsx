@@ -5,13 +5,70 @@ import { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AddIcon } from "@chakra-ui/icons"; // Import the AddIcon
 import useAuthFetch from "../hooks/authFetch";
+import axios from "axios";
 
 interface Props {
   category: string;
+  watchList: any;
+  setWatchList: any;
 }
 
-const MovieRender = ({ category }: Props) => {
+const MovieRender = ({ category, watchList, setWatchList }: Props) => {
   const { loggedIn, logout, userObject } = useAuthFetch();
+
+  const addWatchList = async (id) => {
+    const token = localStorage.getItem("x-auth-token");
+    try {
+      console.log("sent reuiest");
+      let response = await axios.post(
+        "http://localhost:3009/api/movies/addWatchList",
+        {
+          id: id, // Send only the payload (id) in the body
+        },
+        {
+          withCredentials: true, // Ensures cookies are sent with the request
+          headers: {
+            "x-auth-token": token, // Proper way to include custom headers
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        let movieOject = await response.data.movieObject;
+        setWatchList([...watchList, movieOject]);
+      } else if (response.status === 404 || response.status === 500) {
+        console.log("issue in adding movie to watchList");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  // const removeWatchList = async (id) => {
+  //   const token = localStorage.getItem("x-auth-token");
+  //   try {
+  //     let response = await axios.post(
+  //       "http://localhost:3009/api/movies/removeAddList",
+  //       {
+  //         id: id, // Send only the payload (id) in the body
+  //       },
+  //       {
+  //         withCredentials: true, // Ensures cookies are sent with the request
+  //         headers: {
+  //           "x-auth-token": token, // Proper way to include custom headers
+  //         },
+  //       }
+  //     );
+
+  //     if (response.status === 200) {
+  //       console.log("movie removed from watchList");
+  //     } else if (response.status === 404 || response.status === 500) {
+  //       console.log("issue removing movie from watchList");
+  //     }
+  //   } catch (error) {
+  //     console.log(error.message);
+  //   }
+  // };
 
   const genreObject = [
     { name: "Action", _id: "28" },
@@ -158,8 +215,10 @@ const MovieRender = ({ category }: Props) => {
                 position="absolute"
                 top="10px"
                 right="10px"
-                onClick={() => {
-                  console.log("Added to favorites:", movie.title);
+                zIndex="10" // Ensure the button is above the card
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevents the card's click event
+                  addWatchList(movie._id); // Adds the movie to the watchlist
                 }}
               />
             )}

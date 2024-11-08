@@ -15,11 +15,14 @@ I should have consolidated movie rental and watchlist fetching into a custom hoo
 user authorization with passport and custom jwt tokens : 
 I used passport for google auth and also gave users the option to sign in with custom emails and would assign custom jwt tokens
 both forms of authorization were validated using express middlewear and user information was received using a /profile route
+bcrypt and password hashing
 
 movie rental process : 
 sign in ---> generate customer ovbject -----> take movie object and customer obj adn embed them to a rental obj. ---> assign a reference to rental in user schema
 
 all data preserved in mongoDB
+
+
 
 
 

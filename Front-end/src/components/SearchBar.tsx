@@ -32,6 +32,7 @@ const SearchBar = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     navigate(`/search/${searchTerm}`);
+    setSearchBoolean(!searchBoolean);
   };
 
   // You can add logic to handle data here, if needed
@@ -97,9 +98,10 @@ const SearchBar = () => {
                           px={4}
                           py={2}
                           _hover={{ bg: "gray.100", cursor: "pointer" }}
-                          onClick={() =>
-                            navigate(`/${movie.title}/${movie._id}`)
-                          }
+                          onClick={() => {
+                            navigate(`/${movie.title}/${movie._id}`);
+                            setSearchBoolean(!searchBoolean);
+                          }}
                           color="black"
                         >
                           <ListIcon as={MdSearch} color="gray.400" />

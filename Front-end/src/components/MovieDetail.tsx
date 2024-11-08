@@ -13,8 +13,15 @@ import {
 } from "@chakra-ui/react";
 import background from "../assets/BackgroundImage.jpeg";
 import useMovie from "../hooks/movieFetch";
-
+import useStore from "../Store/store.ts";
+import useAuthFetch from "../hooks/authFetch";
+import rentalFetch from "../hooks/rentalFetch";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 const MovieDetailPage = () => {
+  const { watchList, setWatchList } = useStore();
+
   const { title, id } = useParams();
   const { data: movie } = useMovie(
     undefined,
@@ -23,6 +30,51 @@ const MovieDetailPage = () => {
     undefined,
     undefined
   );
+  const navigate = useNavigate();
+  const { loggedIn } = useAuthFetch();
+  const { CheckRental } = rentalFetch();
+
+  const [isRented, setIsRented] = useState(false);
+
+  useEffect(() => {
+    const checkRental = async () => {
+      const result = await CheckRental(movie?._id);
+      setIsRented(result);
+    };
+    checkRental();
+  }, [movie?._id]);
+
+  const addWatchList = async (id) => {
+    if (!loggedIn) {
+      navigate("/login");
+    }
+    const token = localStorage.getItem("x-auth-token");
+    try {
+      console.log("sent reuiest");
+      let response = await axios.post(
+        "http://localhost:3009/api/movies/addWatchList",
+        {
+          id: id, // Send only the payload (id) in the body
+        },
+        {
+          withCredentials: true, // Ensures cookies are sent with the request
+          headers: {
+            "x-auth-token": token, // Proper way to include custom headers
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        let movieOject = await response.data.movieObject;
+        setWatchList([...watchList, movieOject]);
+        alert("Movie added to watchList!");
+      } else if (response.status === 404 || response.status === 500) {
+        console.log("issue in adding movie to watchList");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   return (
     <div>
@@ -117,22 +169,25 @@ const MovieDetailPage = () => {
                 >
                   {movie?.description}
                 </Text>
+
+                {isRented === false ? (
+                  <Button
+                    size="lg"
+                    colorScheme="teal"
+                    borderRadius="full"
+                    onClick={() => navigate(`/rental/${movie?._id}`)}
+                    _hover={{ transform: "scale(1.05)", boxShadow: "lg" }} // Subtle scaling effect on hover
+                    px="8" // Padding to make the button look larger
+                    py="6"
+                  >
+                    Rent Movie
+                  </Button>
+                ) : null}
                 <Button
                   size="lg"
                   colorScheme="teal"
                   borderRadius="full"
-                  onClick={() => alert("Movie rented!")}
-                  _hover={{ transform: "scale(1.05)", boxShadow: "lg" }} // Subtle scaling effect on hover
-                  px="8" // Padding to make the button look larger
-                  py="6"
-                >
-                  Rent Movie
-                </Button>
-                <Button
-                  size="lg"
-                  colorScheme="teal"
-                  borderRadius="full"
-                  onClick={() => alert("Movie rented!")}
+                  onClick={() => addWatchList(movie?._id)}
                   _hover={{ transform: "scale(1.05)", boxShadow: "lg" }} // Subtle scaling effect on hover
                   px="8" // Padding to make the button look larger
                   py="6"

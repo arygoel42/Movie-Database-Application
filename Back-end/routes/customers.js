@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router();
 const routeAuth = require("../middlewear/auth");
 const adminCheck = require("../middlewear/auth");
+const authLog = require("../middlewear/authLog");
 
 router.get("/", [routeAuth, adminCheck], async (req, res) => {
   //insert admin validation
@@ -11,18 +12,18 @@ router.get("/", [routeAuth, adminCheck], async (req, res) => {
   res.send(customers);
 });
 
-router.post("/", routeAuth, async (req, res) => {
+router.post("/", authLog, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   let customer = new Customer({
     name: req.body.name,
-    isGold: req.body.isGold,
+    CardNum: req.body.CardNum,
     phone: req.body.phone,
   });
   customer = await customer.save();
 
-  res.send(customer);
+  res.json(customer._id);
 });
 
 router.put("/:id", routeAuth, async (req, res) => {
@@ -33,7 +34,7 @@ router.put("/:id", routeAuth, async (req, res) => {
     req.params.id,
     {
       name: req.body.name,
-      isGold: req.body.isGold,
+      CardNum: req.body.CardNum,
       phone: req.body.phone,
     },
     { new: true }

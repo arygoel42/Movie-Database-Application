@@ -6,7 +6,11 @@ import { Link } from "react-router-dom";
 import MovieRender from "./MovieRender";
 import useAuthFetch from "../hooks/authFetch";
 import { AddIcon, MinusIcon } from "@chakra-ui/icons"; // Import the AddIcon
+import { Badge } from "@chakra-ui/react";
+import useStore from "../Store/store";
 import axios from "axios";
+import { log } from "winston";
+import rentalFetch from "../hooks/rentalFetch";
 
 export interface movieObject {
   numberInStock: number;
@@ -24,8 +28,36 @@ export interface movieObject {
 }
 
 const DisplayMovies = () => {
-  const [watchList, setWatchList] = useState<movieObject[]>([]); // Define the type for the watchList state
+  // const [watchList, setWatchList] = useState<movieObject[]>([]); // Define the type for the watchList state
+  const { watchList, setWatchList } = useStore();
   const layoutObject = ["toprated", "Action", "Suspense", "Horror"];
+  const { CheckRental } = rentalFetch();
+
+  const [rentals, setRentals] = useState<any>([]);
+
+  const getRentals = async () => {
+    const token = localStorage.getItem("x-auth-token");
+    try {
+      const response = await fetch(
+        "http://localhost:3009/api/rentals/getUserRentals",
+        {
+          method: "POST",
+          headers: {
+            "x-auth-token": token ?? "",
+          },
+          credentials: "include",
+        }
+      );
+      if (response.status !== 200) {
+        console.log("Error in fetching rentals");
+        return;
+      }
+      const data = await response.json();
+      setRentals(data.rentals);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   const addWatchList = async (id) => {
     const token = localStorage.getItem("x-auth-token");
@@ -46,6 +78,7 @@ const DisplayMovies = () => {
 
       if (response.status === 200) {
         let movieOject = await response.data.movieObject;
+        setWatchList([...rentals, watchList]);
         setWatchList([...watchList, movieOject]);
       } else if (response.status === 404 || response.status === 500) {
         console.log("issue in adding movie to watchList");
@@ -96,10 +129,29 @@ const DisplayMovies = () => {
         }
       );
 
-      let WatchList = response.data.watchList;
-      console.log(response.data.watchList);
+      let watchListData = response.data.watchList || [];
 
-      setWatchList(WatchList || []); // Set the watchList to an empty array if it's undefined or empty
+      // Fetch rented movies
+      const rentalsResponse = await axios.post(
+        "http://localhost:3009/api/rentals/getUserRentals",
+        {},
+        {
+          headers: {
+            "x-auth-token": token,
+          },
+          withCredentials: true,
+        }
+      );
+
+      const rentedMovies = rentalsResponse.data.rentals || [];
+
+      // Filter out rented movies from the watchlist to avoid duplicates
+      const nonRentedWatchList = watchListData.filter(
+        (movie) => !rentedMovies.some((rented) => rented._id === movie._id)
+      );
+
+      // Combine rented movies (first) with non-rented watchlist movies
+      setWatchList([...rentedMovies, ...nonRentedWatchList]);
     } catch (error) {
       console.log("error:", error.message);
     }
@@ -107,7 +159,10 @@ const DisplayMovies = () => {
 
   useEffect(() => {
     fetchWatchList();
+    getRentals();
   }, []);
+
+  console.log(rentals + "rentalObj");
 
   const { data } = useMovie("popular");
   const { loggedIn } = useAuthFetch();
@@ -132,7 +187,7 @@ const DisplayMovies = () => {
 
   return (
     <div>
-      {watchList.length > 0 && (
+      {watchList.length > 0 && loggedIn && (
         <Box
           overflow="hidden" // Hide the overflow of the movie list
           width="90vw" // Full width of viewport
@@ -175,6 +230,18 @@ const DisplayMovies = () => {
                   transition: "transform 0.15s",
                 }}
               >
+                {/* Rental Badge */}
+                {rentals.some((rental) => rental._id === movie._id) && (
+                  <Badge
+                    position="absolute"
+                    top="10px"
+                    left="10px"
+                    colorScheme="yellow"
+                    fontSize="sm"
+                  >
+                    Rented
+                  </Badge>
+                )}
                 <Box
                   position="absolute"
                   bottom="0"

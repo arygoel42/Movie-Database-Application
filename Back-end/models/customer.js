@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const number = require("joi/lib/types/number");
 const mongoose = require("mongoose");
 
 const customerSchema = new mongoose.Schema({
@@ -8,9 +9,9 @@ const customerSchema = new mongoose.Schema({
     minlength: 5,
     maxlength: 50,
   },
-  isGold: {
-    type: Boolean,
-    default: false,
+  CardNum: {
+    type: Number,
+    required: true,
   },
   phone: {
     type: String,
@@ -24,8 +25,8 @@ const Customer = mongoose.model("Customer", customerSchema);
 function validateCustomer(customer) {
   const schema = {
     name: Joi.string().min(5).max(50).required(),
+    CardNum: Joi.required(),
     phone: Joi.string().min(5).max(50).required(),
-    isGold: Joi.boolean(),
   };
 
   return Joi.validate(customer, schema);

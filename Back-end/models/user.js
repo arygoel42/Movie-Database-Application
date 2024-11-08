@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { customerSchema } = require("./customer");
 const mongoose = require("mongoose");
+const { Rental } = require("./rental");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -32,6 +33,7 @@ const userSchema = new mongoose.Schema({
     required: false,
   },
   watchList: [{ type: mongoose.Schema.Types.ObjectId, ref: "Movie" }],
+  Rentals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Rental" }],
 });
 
 userSchema.methods.generateAuthToken = function () {

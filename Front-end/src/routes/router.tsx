@@ -8,6 +8,7 @@ import SearchPage from "../components/SearchPage";
 import LoginPage from "../components/LoginPage";
 import SignUp from "../components/SignUp";
 import Profile from "../components/Profile";
+import RentMovie from "../components/RentMovie";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
   { path: "/Login", element: <LoginPage /> },
   { path: "/signup", element: <SignUp /> },
   { path: "/profile", element: <Profile /> },
+  { path: "/rental/:id", element: <RentMovie /> },
 ]);
 
 export default router;
